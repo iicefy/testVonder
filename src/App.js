@@ -35,7 +35,9 @@ function SubTask({ data, index, subIndex, onDeleteSubTask, onInsertTask }) {
         <Button
           type="primary"
           onClick={() => onInsertTask(index, subIndex)}
-        >Done</Button>{" "}
+        >
+          {data.isDone ? 'Undo' : 'Done'}
+        </Button>{" "}
         <Button type="danger"
           onClick={() => onDeleteSubTask(index, subIndex)}
         >Delete</Button>
@@ -47,17 +49,21 @@ function SubTask({ data, index, subIndex, onDeleteSubTask, onInsertTask }) {
 function Task({ data, index, onDeleteTask, onCreateSubTask, onDeleteSubTask, onInsertTask, onDuplicate }) {
 
   const [subTaskName, setSubTaskName] = useState('')
+  const checkIsDone = () => data.task.find(e => e.isDone === false) === undefined
+  const isBlankArr = () => data.task.length !== 0
+  const Valid = () => checkIsDone() && isBlankArr()
 
   return (
     <Space direction="vertical" style={{ marginTop: 24 }}>
       <Card
         title={data.name}
-        style={{ width: 600 }}
+        style={{ width: 600, }}
+        headStyle={Valid() ? { textDecoration: 'line-through' } : { textDecoration: 'none' }}
         extra={
           <>
             <Button
               type="primary"
-              onClick={() => onDuplicate(index)}
+              onClick={() => { onDuplicate(index); }}
             >Duplicate</Button>{" "}
             <Button
               type="primary"
@@ -81,14 +87,18 @@ function Task({ data, index, onDeleteTask, onCreateSubTask, onDeleteSubTask, onI
           </Space>
           <Divider />
           {
-            data.task.map((e, subIndex) =>
-              <SubTask
-                data={e}
-                index={index}
-                subIndex={subIndex}
-                onDeleteSubTask={onDeleteSubTask}
-                onInsertTask={onInsertTask}
-              />
+            data.task.map((e, subIndex) => {
+              return (
+                <SubTask
+                  data={e}
+                  key={subIndex}
+                  index={index}
+                  subIndex={subIndex}
+                  onDeleteSubTask={onDeleteSubTask}
+                  onInsertTask={onInsertTask}
+                />
+              )
+            }
             )
           }
         </Space>
@@ -102,6 +112,7 @@ function App() {
   const [taskData, setTaskData] = useState([]);
   const [taskName, setTaskName] = useState('')
 
+
   const onCreateTask = () => {
     setTaskData([...taskData, task(taskName, false, [])])
   }
@@ -113,9 +124,9 @@ function App() {
   }
 
   const onDuplicate = (index) => {
-    let task = [...taskData]
-    let dupTask = task[index]
-    console.log(dupTask);
+    let taskArr = [...taskData]
+    let dupTask = taskArr[index]
+    setTaskData([...taskArr, task(dupTask.name, dupTask.isAllDone, dupTask.task)])
   }
 
   const onDeleteTask = (index) => {
@@ -133,10 +144,10 @@ function App() {
   const onInsertTask = (index, subIndex) => {
     let task = [...taskData];
     let subTaskName = task[index].task[subIndex].name
-    task[index].task.splice(subIndex, 1, subTask(subTaskName, true))
+    let bool = task[index].task[subIndex].isDone
+    task[index].task.splice(subIndex, 1, subTask(subTaskName, !bool))
     setTaskData(task);
   }
-
 
   return (
     <Container>
@@ -150,6 +161,7 @@ function App() {
             <Task
               data={e}
               index={index}
+              key={index}
               onDeleteTask={onDeleteTask}
               onCreateSubTask={onCreateSubTask}
               onDeleteSubTask={onDeleteSubTask}
