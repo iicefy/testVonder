@@ -22,7 +22,7 @@ const Container = styled.div`
   padding: 16px 24px;
 `;
 
-function SubTask({ data, index, subIndex, onDeleteSubTask, onInsertTask }) {
+function SubTask({ data, index, subIndex, onDeleteSubTask, onStatusTask }) {
 
   return (
     <Row>
@@ -34,7 +34,7 @@ function SubTask({ data, index, subIndex, onDeleteSubTask, onInsertTask }) {
       <Col span={8}>
         <Button
           type="primary"
-          onClick={() => onInsertTask(index, subIndex)}
+          onClick={() => onStatusTask(index, subIndex)}
         >
           {data.isDone ? 'Undo' : 'Done'}
         </Button>{" "}
@@ -46,7 +46,7 @@ function SubTask({ data, index, subIndex, onDeleteSubTask, onInsertTask }) {
   )
 }
 
-function Task({ data, index, onDeleteTask, onCreateSubTask, onDeleteSubTask, onInsertTask, onDuplicate }) {
+function Task({ data, index, onDeleteTask, onCreateSubTask, onDeleteSubTask, onStatusTask, onDuplicate }) {
 
   const [subTaskName, setSubTaskName] = useState('')
   const checkIsDone = () => data.task.find(e => e.isDone === false) === undefined
@@ -95,7 +95,7 @@ function Task({ data, index, onDeleteTask, onCreateSubTask, onDeleteSubTask, onI
                   index={index}
                   subIndex={subIndex}
                   onDeleteSubTask={onDeleteSubTask}
-                  onInsertTask={onInsertTask}
+                  onStatusTask={onStatusTask}
                 />
               )
             }
@@ -112,15 +112,16 @@ function App() {
   const [taskData, setTaskData] = useState([]);
   const [taskName, setTaskName] = useState('')
 
-
   const onCreateTask = () => {
     setTaskData([...taskData, task(taskName, false, [])])
   }
 
   const onCreateSubTask = (index, subTaskName) => {
-    let task = [...taskData];
-    task[index].task.push(subTask(subTaskName, false))
-    setTaskData(task)
+    let taskArr = [...taskData];
+    let subTaskArr = [...taskData[index].task]
+    subTaskArr.push(subTask(subTaskName, false))
+    taskArr[index].task = subTaskArr
+    setTaskData(taskArr)
   }
 
   const onDuplicate = (index) => {
@@ -130,23 +131,27 @@ function App() {
   }
 
   const onDeleteTask = (index) => {
-    let task = [...taskData];
-    task.splice(index, 1);
-    setTaskData(task);
+    let taskArr = [...taskData];
+    taskArr.splice(index, 1);
+    setTaskData(taskArr);
   };
 
   const onDeleteSubTask = (index, subIndex) => {
-    let task = [...taskData];
-    task[index].task.splice(subIndex, 1)
-    setTaskData(task);
+    let taskArr = [...taskData];
+    let subTaskArr = [...taskData[index].task]
+    subTaskArr.splice(subIndex, 1)
+    taskArr[index].task = subTaskArr
+    setTaskData(taskArr);
   }
 
-  const onInsertTask = (index, subIndex) => {
-    let task = [...taskData];
-    let subTaskName = task[index].task[subIndex].name
-    let bool = task[index].task[subIndex].isDone
-    task[index].task.splice(subIndex, 1, subTask(subTaskName, !bool))
-    setTaskData(task);
+  const onStatusTask = (index, subIndex) => {
+    let taskArr = [...taskData];
+    let subTaskArr = [...taskData[index].task]
+    let subTaskName = taskArr[index].task[subIndex].name
+    let bool = taskArr[index].task[subIndex].isDone
+    subTaskArr.splice(subIndex, 1, subTask(subTaskName, !bool))
+    taskArr[index].task = subTaskArr
+    setTaskData(taskArr);
   }
 
   return (
@@ -165,7 +170,7 @@ function App() {
               onDeleteTask={onDeleteTask}
               onCreateSubTask={onCreateSubTask}
               onDeleteSubTask={onDeleteSubTask}
-              onInsertTask={onInsertTask}
+              onStatusTask={onStatusTask}
               onDuplicate={onDuplicate}
             />
           )
